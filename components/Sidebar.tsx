@@ -1,0 +1,124 @@
+
+import React from 'react';
+import { AppMode, UserStats, Theme, Language } from '../types';
+import { ChatIcon, QuizIcon, GradeIcon, CodeIcon, FlameIcon, SunIcon, MoonIcon, GlobeIcon } from './Icons';
+
+interface SidebarProps {
+  currentMode: AppMode;
+  setMode: (mode: AppMode) => void;
+  stats: UserStats;
+  theme: Theme;
+  toggleTheme: () => void;
+  language: Language;
+  toggleLanguage: () => void;
+}
+
+const translations = {
+    en: {
+        chat: 'Tutor Chat',
+        quiz: 'Quiz',
+        grader: 'Grader',
+        sandbox: 'Sandbox',
+        progress: 'Progress',
+        points: 'XP',
+        level: 'Lvl'
+    },
+    zh: {
+        chat: 'AI 导师',
+        quiz: '测验',
+        grader: '批改',
+        sandbox: '沙盒',
+        progress: '进度',
+        points: '经验',
+        level: '等级'
+    }
+};
+
+const Sidebar: React.FC<SidebarProps> = ({ currentMode, setMode, stats, theme, toggleTheme, language, toggleLanguage }) => {
+  const t = translations[language];
+
+  const navItems = [
+    { mode: AppMode.Chat, icon: ChatIcon, label: t.chat },
+    { mode: AppMode.Quiz, icon: QuizIcon, label: t.quiz },
+    { mode: AppMode.Grader, icon: GradeIcon, label: t.grader },
+    { mode: AppMode.Sandbox, icon: CodeIcon, label: t.sandbox },
+  ];
+
+  return (
+    <div className="w-20 md:w-64 h-full flex flex-col rounded-[2.5rem] frosted-glass border border-white/40 dark:border-white/5 shadow-apple dark:shadow-apple-dark bg-white/60 dark:bg-[#1C1C1E]/60 backdrop-blur-xl transition-all duration-300 overflow-hidden">
+      
+      {/* App Header */}
+      <div className="p-6 pb-4 flex items-center justify-center md:justify-start space-x-3 mt-2 flex-shrink-0">
+        <div className="w-10 h-10 bg-gradient-to-br from-[#007AFF] to-[#5856D6] rounded-2xl shadow-lg flex items-center justify-center text-white font-bold text-xs tracking-tighter">9618</div>
+        <span className="hidden md:block font-bold text-xl tracking-tight text-black dark:text-white">CS Tutor</span>
+      </div>
+
+      {/* Navigation */}
+      <div className="flex-1 px-3 space-y-2 overflow-y-auto custom-scrollbar">
+        <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2 px-3 hidden md:block mt-4">Menu</div>
+        {navItems.map((item) => (
+          <button
+            key={item.mode}
+            onClick={() => setMode(item.mode)}
+            className={`w-full flex items-center space-x-3 px-3 py-3 rounded-2xl transition-all duration-200 group ${
+              currentMode === item.mode
+                ? 'bg-[#007AFF] text-white shadow-lg shadow-blue-500/20'
+                : 'text-gray-500 dark:text-gray-400 hover:bg-black/5 dark:hover:bg-white/10 hover:text-black dark:hover:text-white'
+            }`}
+          >
+            <item.icon />
+            <span className="hidden md:block font-medium text-sm flex-1 text-left">{item.label}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Bottom Section: Stats & Controls */}
+      <div className="p-3 mt-auto flex-shrink-0 flex flex-col gap-3 pb-6">
+        {/* Stats Card */}
+        <div className="bento-card p-4 flex flex-col space-y-3 bg-white/50 dark:bg-white/5 backdrop-blur-md border border-white/20 dark:border-white/5 rounded-3xl">
+            <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-orange-400 to-red-500 flex items-center justify-center text-white shadow-md">
+                        <FlameIcon />
+                    </div>
+                    <div className="hidden md:block">
+                        <div className="text-xs text-gray-500 font-medium">{t.points}</div>
+                        <div className="text-sm font-bold text-black dark:text-white">{stats.points}</div>
+                    </div>
+                </div>
+                <div className="text-xs font-bold text-orange-500 bg-orange-100 dark:bg-orange-500/20 px-2 py-1 rounded-full">
+                    {stats.streak} 🔥
+                </div>
+            </div>
+            
+            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 overflow-hidden">
+                <div 
+                className="bg-[#007AFF] h-full rounded-full transition-all duration-500 shadow-[0_0_10px_rgba(0,122,255,0.5)]" 
+                style={{ width: `${Math.min(stats.points % 1000 / 10, 100)}%` }}
+                ></div>
+            </div>
+        </div>
+
+        {/* Toggles */}
+        <div className="space-y-1">
+            <button
+                onClick={toggleTheme}
+                className="w-full flex items-center justify-center md:justify-start space-x-3 px-3 py-3 rounded-2xl text-gray-500 dark:text-gray-400 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+            >
+                {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
+                <span className="hidden md:block font-medium text-sm">Appearance</span>
+            </button>
+            <button
+                onClick={toggleLanguage}
+                className="w-full flex items-center justify-center md:justify-start space-x-3 px-3 py-3 rounded-2xl text-gray-500 dark:text-gray-400 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+            >
+                <GlobeIcon />
+                <span className="hidden md:block font-medium text-sm">Language</span>
+            </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Sidebar;
