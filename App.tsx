@@ -103,7 +103,7 @@ const App: React.FC = () => {
       <div className="absolute bottom-1/4 right-1/4 w-[40vw] h-[40vh] bg-purple-500/10 rounded-full blur-[120px] pointer-events-none animate-pulse" style={{ animationDuration: '10s', animationDelay: '1s' }}></div>
 
       {/* Main App Floating Wrapper */}
-      <div className="w-[96vw] h-[92vh] md:w-[94vw] md:h-[90vh] max-w-[1700px] flex flex-row gap-4 md:gap-6 z-20">
+      <div className="w-[96vw] h-[92vh] md:w-[94vw] md:h-[90vh] max-w-[1700px] flex flex-row gap-6 z-20">
         
         {/* Sidebar */}
         <div className="flex-shrink-0 h-full">

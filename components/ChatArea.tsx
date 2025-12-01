@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Message, Sender, Attachment, TeachingPersona, Language } from '../types';
 import { SendIcon, AttachmentIcon, XIcon, RobotIcon, CopyIcon, CheckIcon } from './Icons';
@@ -218,7 +217,7 @@ const ChatArea: React.FC<ChatAreaProps> = ({ language }) => {
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      Array.from(e.target.files).forEach(file => processFile(file));
+      Array.from(e.target.files).forEach((file: File) => processFile(file));
     }
   };
 
@@ -336,16 +335,16 @@ const ChatArea: React.FC<ChatAreaProps> = ({ language }) => {
                     </div>
                 )}
                 <div
-                className={`max-w-[85%] md:max-w-[75%] px-5 py-3 rounded-[1.5rem] shadow-sm relative text-[15px] animate-scale-in border border-transparent ${
+                className={`max-w-[85%] md:max-w-[75%] px-5 py-3 rounded-[2rem] shadow-sm relative text-[15px] animate-scale-in border border-transparent ${
                     msg.sender === Sender.User
-                    ? 'bg-[#007AFF] text-white rounded-br-sm shadow-blue-500/10'
-                    : 'bg-[#F2F2F7] dark:bg-[#2C2C2E] text-black dark:text-white rounded-bl-sm border-black/5 dark:border-white/5'
+                    ? 'bg-[#007AFF] text-white shadow-blue-500/10'
+                    : 'bg-[#F2F2F7] dark:bg-[#2C2C2E] text-black dark:text-white border-black/5 dark:border-white/5'
                 }`}
                 >
                 {msg.attachments && msg.attachments.length > 0 && (
                     <div className="mb-3 flex flex-wrap gap-2">
                     {msg.attachments.map((att, idx) => (
-                        <div key={idx} className="relative rounded-2xl overflow-hidden border border-black/5 dark:border-white/10 shadow-sm">
+                        <div key={idx} className="relative rounded-3xl overflow-hidden border border-black/5 dark:border-white/10 shadow-sm">
                         <img 
                             src={`data:${att.mimeType};base64,${att.data}`} 
                             alt="attachment" 
@@ -366,7 +365,7 @@ const ChatArea: React.FC<ChatAreaProps> = ({ language }) => {
                 <div className="w-8 h-8 mr-3 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-300 flex-shrink-0 self-end mb-1">
                     <RobotIcon />
                 </div>
-                <div className="bg-[#F2F2F7] dark:bg-[#2C2C2E] px-4 py-3 rounded-[1.5rem] rounded-bl-sm flex items-center space-x-1.5 h-[46px] shadow-sm border border-black/5 dark:border-white/5">
+                <div className="bg-[#F2F2F7] dark:bg-[#2C2C2E] px-4 py-3 rounded-[2rem] flex items-center space-x-1.5 h-[46px] shadow-sm border border-black/5 dark:border-white/5">
                     <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
                     <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.15s' }}></div>
                     <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.3s' }}></div>
@@ -400,10 +399,10 @@ const ChatArea: React.FC<ChatAreaProps> = ({ language }) => {
             <div className="relative w-full">
                 {/* Attachments Preview */}
                 {attachments.length > 0 && (
-                    <div className="absolute bottom-full left-0 mb-2 flex flex-wrap gap-2 p-3 bg-white/80 dark:bg-[#1C1C1E]/80 backdrop-blur-xl rounded-[1.5rem] border border-black/5 dark:border-white/5 shadow-apple dark:shadow-apple-dark">
+                    <div className="absolute bottom-full left-0 mb-2 flex flex-wrap gap-2 p-3 bg-white/80 dark:bg-[#1C1C1E]/80 backdrop-blur-xl rounded-[2rem] border border-black/5 dark:border-white/5 shadow-apple dark:shadow-apple-dark">
                         {attachments.map((att, idx) => (
                             <div key={idx} className="relative group">
-                                <div className="w-12 h-12 rounded-xl overflow-hidden border border-black/10 dark:border-white/10">
+                                <div className="w-12 h-12 rounded-2xl overflow-hidden border border-black/10 dark:border-white/10">
                                     <img src={`data:${att.mimeType};base64,${att.data}`} alt="preview" className="w-full h-full object-cover" />
                                 </div>
                                 <button 
@@ -418,7 +417,7 @@ const ChatArea: React.FC<ChatAreaProps> = ({ language }) => {
                 )}
 
                 {/* Input Bar */}
-                <div className="frosted-glass p-1.5 rounded-[2.2rem] shadow-apple dark:shadow-apple-dark flex items-end gap-2 relative transition-all duration-200 focus-within:ring-2 focus-within:ring-[#007AFF]/30 bg-white/80 dark:bg-[#1C1C1E]/80 border border-white/40 dark:border-white/5">
+                <div className="frosted-glass p-1.5 rounded-[2rem] shadow-apple dark:shadow-apple-dark flex items-center gap-2 relative transition-all duration-200 focus-within:ring-2 focus-within:ring-[#007AFF]/30 bg-white/80 dark:bg-[#1C1C1E]/80 border border-white/40 dark:border-white/5">
                     <input 
                         type="file" 
                         multiple 
@@ -435,7 +434,7 @@ const ChatArea: React.FC<ChatAreaProps> = ({ language }) => {
                         <AttachmentIcon />
                     </button>
 
-                    <div className="flex-1 py-3">
+                    <div className="flex-1 py-3 flex items-center">
                         <textarea
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
@@ -455,7 +454,7 @@ const ChatArea: React.FC<ChatAreaProps> = ({ language }) => {
                     <button 
                         onClick={handleSend}
                         disabled={(!input.trim() && attachments.length === 0) || isLoading}
-                        className={`p-2 rounded-full transition-all duration-200 flex items-center justify-center mb-1 mr-1 ${
+                        className={`p-2 rounded-full transition-all duration-200 flex items-center justify-center mr-1 ${
                             (!input.trim() && attachments.length === 0) || isLoading
                             ? 'bg-gray-200 dark:bg-white/10 text-gray-400 cursor-not-allowed'
                             : 'bg-[#007AFF] text-white hover:bg-[#0062cc] shadow-md shadow-blue-500/20 active:scale-95'

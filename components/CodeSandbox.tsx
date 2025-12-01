@@ -62,7 +62,7 @@ const CodeSandbox: React.FC<SandboxProps> = ({ language }) => {
                         <select 
                             value={lang} 
                             onChange={(e) => setLang(e.target.value)}
-                            className="appearance-none bg-slate-100 dark:bg-white/10 border border-slate-200 dark:border-white/10 rounded-full px-5 py-2 pr-8 text-sm text-slate-800 dark:text-white focus:ring-2 focus:ring-[#007AFF] outline-none cursor-pointer font-medium"
+                            className="appearance-none bg-slate-100 dark:bg-white/10 border border-slate-200 dark:border-white/10 rounded-2xl px-5 py-2 pr-8 text-sm text-slate-800 dark:text-white focus:ring-2 focus:ring-[#007AFF] outline-none cursor-pointer font-medium"
                         >
                             <option value="Python">Python</option>
                             <option value="Pseudocode">Pseudocode</option>
@@ -77,12 +77,12 @@ const CodeSandbox: React.FC<SandboxProps> = ({ language }) => {
 
                 <div className="flex-1 flex flex-col md:flex-row gap-6 min-h-0 pb-6">
                     {/* Editor */}
-                    <div className="flex-1 flex flex-col bg-slate-50 dark:bg-[#151516] rounded-[2.5rem] border border-slate-200 dark:border-white/10 overflow-hidden shadow-sm">
+                    <div className="flex-1 flex flex-col bg-slate-50 dark:bg-[#151516] rounded-[2rem] border border-slate-200 dark:border-white/10 overflow-hidden shadow-sm">
                         <div className="bg-white/50 dark:bg-white/5 px-6 py-3 border-b border-slate-200 dark:border-white/10 flex justify-between items-center backdrop-blur-sm">
                             <span className="text-xs font-mono text-slate-500 dark:text-gray-400 uppercase tracking-widest">{t.editor}</span>
                             <button 
                                 onClick={() => setCode('')}
-                                className="text-xs text-red-400 hover:text-red-500 font-medium px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                                className="text-xs text-red-400 hover:text-red-500 font-medium px-2 py-1 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                             >
                                 {t.clear}
                             </button>
@@ -97,7 +97,7 @@ const CodeSandbox: React.FC<SandboxProps> = ({ language }) => {
                     </div>
 
                     {/* Output Panel */}
-                    <div className="flex-1 flex flex-col bg-white dark:bg-[#2C2C2E] rounded-[2.5rem] border border-slate-200 dark:border-white/10 overflow-hidden shadow-sm">
+                    <div className="flex-1 flex flex-col bg-white dark:bg-[#2C2C2E] rounded-[2rem] border border-slate-200 dark:border-white/10 overflow-hidden shadow-sm">
                          <div className="bg-slate-50/50 dark:bg-white/5 px-6 py-3 border-b border-slate-200 dark:border-white/10 flex justify-between items-center backdrop-blur-sm">
                             <span className="text-xs font-mono text-slate-500 dark:text-gray-400 uppercase tracking-widest">{t.output}</span>
                             <button 

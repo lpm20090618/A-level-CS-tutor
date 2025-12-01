@@ -156,7 +156,7 @@ const QuizMode: React.FC<QuizProps> = ({ updateStats, language }) => {
                             <button 
                                 key={topic}
                                 onClick={() => toggleTopic(topic)}
-                                className={`bento-card p-5 h-32 flex flex-col justify-between text-left relative overflow-hidden group ${isSelected ? 'ring-2 ring-[#007AFF] ring-offset-2 ring-offset-[#F5F5F7] dark:ring-offset-black' : ''}`}
+                                className={`bento-card p-5 h-32 flex flex-col justify-between text-left relative overflow-hidden group rounded-[2rem] ${isSelected ? 'ring-2 ring-[#007AFF] ring-offset-2 ring-offset-[#F5F5F7] dark:ring-offset-black' : ''}`}
                             >
                                 <div className={`absolute top-0 right-0 w-16 h-16 bg-gradient-to-br ${colorClass} to-transparent opacity-10 rounded-bl-[2rem] transition-opacity group-hover:opacity-20`}></div>
                                 <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${isSelected ? 'bg-[#007AFF] text-white' : 'bg-gray-100 dark:bg-white/10 text-gray-400'}`}>
@@ -188,25 +188,25 @@ const QuizMode: React.FC<QuizProps> = ({ updateStats, language }) => {
     const percentage = (score / questions.length) * 100;
     return (
       <div className="flex items-center justify-center h-full p-8 animate-scale-in">
-        <div className="bento-card p-8 md:p-12 text-center max-w-md w-full bg-white dark:bg-[#1C1C1E]">
+        <div className="bento-card p-8 md:p-12 text-center max-w-md w-full bg-white dark:bg-[#1C1C1E] rounded-[2.5rem]">
           <h2 className="text-2xl font-bold text-black dark:text-white mb-2">{t.complete}</h2>
           <div className="text-6xl font-bold text-[#007AFF] my-6">{score}/{questions.length}</div>
           <p className="text-gray-500 mb-8">{t.performance}</p>
           <div className="grid grid-cols-2 gap-4 mb-8">
-              <div className="bg-gray-50 dark:bg-white/5 p-4 rounded-2xl">
+              <div className="bg-gray-50 dark:bg-white/5 p-4 rounded-[2rem]">
                   <div className="text-xs text-gray-400 uppercase font-bold">{t.grade}</div>
                   <div className="text-xl font-bold text-black dark:text-white mt-1">
                       {percentage >= 80 ? 'A' : percentage >= 60 ? 'B' : percentage >= 50 ? 'C' : 'U'}
                   </div>
               </div>
-              <div className="bg-gray-50 dark:bg-white/5 p-4 rounded-2xl">
+              <div className="bg-gray-50 dark:bg-white/5 p-4 rounded-[2rem]">
                   <div className="text-xs text-gray-400 uppercase font-bold">{t.earned}</div>
                   <div className="text-xl font-bold text-orange-500 mt-1">+{score * 100}</div>
               </div>
           </div>
           <button 
             onClick={() => setQuizState('SETUP')}
-            className="w-full py-3 bg-[#007AFF] hover:bg-[#0062cc] text-white font-semibold rounded-xl transition-all"
+            className="w-full py-3 bg-[#007AFF] hover:bg-[#0062cc] text-white font-semibold rounded-2xl transition-all"
           >
             {t.newQuiz}
           </button>
@@ -260,7 +260,7 @@ const QuizMode: React.FC<QuizProps> = ({ updateStats, language }) => {
                         key={idx}
                         onClick={() => handleOptionClick(idx)}
                         disabled={isAnswered}
-                        className={`p-4 rounded-xl border transition-all duration-200 text-left font-medium text-base md:text-lg flex items-center ${cardClass} ${!isAnswered ? 'bg-white dark:bg-[#2C2C2E] text-black dark:text-white shadow-sm border-black/5 dark:border-white/5' : ''}`}
+                        className={`p-4 rounded-[1.5rem] border transition-all duration-200 text-left font-medium text-base md:text-lg flex items-center ${cardClass} ${!isAnswered ? 'bg-white dark:bg-[#2C2C2E] text-black dark:text-white shadow-sm border-black/5 dark:border-white/5' : ''}`}
                     >
                         <span className="w-8 h-8 rounded-full border border-current flex items-center justify-center text-xs mr-4 opacity-70 flex-shrink-0">
                             {String.fromCharCode(65 + idx)}
@@ -274,7 +274,7 @@ const QuizMode: React.FC<QuizProps> = ({ updateStats, language }) => {
         {/* Feedback */}
         <div className="mt-8 h-24">
             {isAnswered && (
-                <div className="animate-fade-in flex items-start justify-between p-4 bg-gray-50 dark:bg-white/5 rounded-2xl">
+                <div className="animate-fade-in flex items-start justify-between p-4 bg-gray-50 dark:bg-white/5 rounded-[2rem]">
                     <div className="flex-1 mr-4">
                         <div className={`font-bold mb-1 ${selectedOption === currentQ.correctIndex ? 'text-[#34C759]' : 'text-[#FF3B30]'}`}>
                             {selectedOption === currentQ.correctIndex ? t.correct : t.incorrect}

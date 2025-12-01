@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { AppMode, UserStats, Theme, Language } from '../types';
 import { ChatIcon, QuizIcon, GradeIcon, CodeIcon, FlameIcon, SunIcon, MoonIcon, GlobeIcon } from './Icons';
@@ -50,7 +49,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentMode, setMode, stats, theme, t
       {/* App Header */}
       <div className="p-6 pb-4 flex items-center justify-center md:justify-start space-x-3 mt-2 flex-shrink-0">
         <div className="w-10 h-10 bg-gradient-to-br from-[#007AFF] to-[#5856D6] rounded-2xl shadow-lg flex items-center justify-center text-white font-bold text-xs tracking-tighter">9618</div>
-        <span className="hidden md:block font-bold text-xl tracking-tight text-black dark:text-white">CS Tutor</span>
+        <span className="hidden md:block font-bold text-xl tracking-tight text-black dark:text-white leading-none">CS Tutor</span>
       </div>
 
       {/* Navigation */}
@@ -67,7 +66,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentMode, setMode, stats, theme, t
             }`}
           >
             <item.icon />
-            <span className="hidden md:block font-medium text-sm flex-1 text-left">{item.label}</span>
+            <span className="hidden md:block font-medium text-sm flex-1 text-left leading-none">{item.label}</span>
           </button>
         ))}
       </div>
@@ -75,7 +74,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentMode, setMode, stats, theme, t
       {/* Bottom Section: Stats & Controls */}
       <div className="p-3 mt-auto flex-shrink-0 flex flex-col gap-3 pb-6">
         {/* Stats Card */}
-        <div className="bento-card p-4 flex flex-col space-y-3 bg-white/50 dark:bg-white/5 backdrop-blur-md border border-white/20 dark:border-white/5 rounded-3xl">
+        <div className="bento-card p-4 flex flex-col space-y-3 bg-white/50 dark:bg-white/5 backdrop-blur-md border border-white/20 dark:border-white/5 rounded-[2rem]">
             <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                     <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-orange-400 to-red-500 flex items-center justify-center text-white shadow-md">
@@ -106,14 +105,14 @@ const Sidebar: React.FC<SidebarProps> = ({ currentMode, setMode, stats, theme, t
                 className="w-full flex items-center justify-center md:justify-start space-x-3 px-3 py-3 rounded-2xl text-gray-500 dark:text-gray-400 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
             >
                 {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
-                <span className="hidden md:block font-medium text-sm">Appearance</span>
+                <span className="hidden md:block font-medium text-sm leading-none">Appearance</span>
             </button>
             <button
                 onClick={toggleLanguage}
                 className="w-full flex items-center justify-center md:justify-start space-x-3 px-3 py-3 rounded-2xl text-gray-500 dark:text-gray-400 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
             >
                 <GlobeIcon />
-                <span className="hidden md:block font-medium text-sm">Language</span>
+                <span className="hidden md:block font-medium text-sm leading-none">Language</span>
             </button>
         </div>
       </div>

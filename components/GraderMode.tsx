@@ -42,7 +42,7 @@ const GraderMode: React.FC<GraderProps> = ({ language }) => {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      Array.from(e.target.files).forEach(file => {
+      Array.from(e.target.files).forEach((file: File) => {
           setUploadProgress(10);
           const reader = new FileReader();
           
@@ -94,7 +94,7 @@ const GraderMode: React.FC<GraderProps> = ({ language }) => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1 min-h-0 pb-6">
           {/* Input Section */}
           <div className="space-y-4 flex flex-col h-full">
-            <div className="bg-gray-50 dark:bg-white/5 p-1 rounded-[2.5rem] flex-1 flex flex-col border border-slate-200 dark:border-white/10 shadow-sm overflow-hidden">
+            <div className="bg-gray-50 dark:bg-white/5 p-1 rounded-[2rem] flex-1 flex flex-col border border-slate-200 dark:border-white/10 shadow-sm overflow-hidden">
               <textarea
                 value={text}
                 onChange={(e) => setText(e.target.value)}
@@ -103,10 +103,10 @@ const GraderMode: React.FC<GraderProps> = ({ language }) => {
                 className="w-full flex-1 bg-transparent border-none text-slate-800 dark:text-gray-200 placeholder-slate-400 dark:placeholder-gray-500 focus:ring-0 resize-none font-mono text-sm p-6"
               ></textarea>
               
-              <div className="flex items-center justify-between p-4 border-t border-slate-200 dark:border-white/10 bg-white/50 dark:bg-white/5 backdrop-blur-sm">
+              <div className="flex items-center justify-between p-4 border-t border-slate-200 dark:border-white/10 bg-white/50 dark:bg-white/5 backdrop-blur-sm rounded-b-[2rem]">
                  <div className="flex gap-2 overflow-x-auto max-w-[150px] md:max-w-[250px] custom-scrollbar">
                     {files.map((f, i) => (
-                        <div key={i} className="relative group bg-white/50 dark:bg-black/30 px-3 py-1.5 rounded-xl text-xs flex items-center border border-slate-200 dark:border-white/10 text-slate-700 dark:text-gray-300">
+                        <div key={i} className="relative group bg-white/50 dark:bg-black/30 px-3 py-1.5 rounded-2xl text-xs flex items-center border border-slate-200 dark:border-white/10 text-slate-700 dark:text-gray-300">
                             <span className="truncate max-w-[80px]">{f.name}</span>
                             <button 
                                 onClick={() => setFiles(prev => prev.filter((_, idx) => idx !== i))}
@@ -141,7 +141,7 @@ const GraderMode: React.FC<GraderProps> = ({ language }) => {
           </div>
 
           {/* Output Section */}
-          <div className="bg-white dark:bg-[#2C2C2E] p-6 rounded-[2.5rem] h-full overflow-hidden flex flex-col border border-slate-200 dark:border-white/10 shadow-sm relative">
+          <div className="bg-white dark:bg-[#2C2C2E] p-6 rounded-[2rem] h-full overflow-hidden flex flex-col border border-slate-200 dark:border-white/10 shadow-sm relative">
             <h3 className="text-lg font-semibold text-slate-800 dark:text-white mb-4 border-b border-slate-200 dark:border-white/10 pb-4 flex-shrink-0">{t.feedbackTitle}</h3>
             {loading ? (
                <div className="flex-1 flex flex-col items-center justify-center space-y-4 opacity-70">
