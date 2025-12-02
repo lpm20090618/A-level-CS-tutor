@@ -1,23 +1,3 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
-
-# Run and deploy your AI Studio app
-
-This contains everything you need to run your app locally.
-
-View your app in AI Studio: https://ai.studio/apps/drive/1bVdJM9c2j3Yn60do_ybJIMU8W51zEBqU
-
-## Run Locally
-
-**Prerequisites:**  Node.js
-
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
 # A-Level CS Tutor 9618 (AI-Powered)
 
 An intelligent, adaptive learning platform designed specifically for **Cambridge International AS & A Level Computer Science (9618)**. This application combines advanced AI tutoring with a structured learning path, gamification, and specialized tools like a code sandbox and intelligent grader to create a comprehensive study environment.
@@ -103,6 +83,10 @@ The UI follows a strict **"Floating Glass"** aesthetic:
 -   **Physics-based Animations**: Smooth `cubic-bezier` transitions for all interactions.
 -   **Tiered Shadows**: Depth is communicated through 3 distinct shadow levels (`--shadow-low`, `--mid`, `--high`).
 -   **Translucency**: Extensive use of `backdrop-filter: blur` to create a modern, premium feel.
+
+<div align="center">
+<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+</div>
 
 ## 📄 License
 
