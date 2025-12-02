@@ -1,10 +1,11 @@
 
-import React, { useState } from 'react';
-import { QuizQuestion, Language } from '../types';
+import React, { useState, useEffect } from 'react';
+import { QuizQuestion, Language, AwardXPCallback } from '../types';
 import { generateQuizQuestions } from '../services/geminiService';
+import { FlameIcon } from './Icons';
 
 interface QuizProps {
-  updateStats: (points: number) => void;
+  onAwardXP: AwardXPCallback;
   language: Language;
 }
 
@@ -37,19 +38,18 @@ const translations = {
         start: 'Start Quiz',
         loadingTitle: 'Generating Quiz...',
         loadingDesc: 'Consulting Cambridge Syllabus',
-        errorTitle: 'Connection Issue',
-        errorDesc: 'Please try again later.',
         backSetup: 'Back',
-        complete: 'Quiz Complete',
-        performance: "Performance Summary",
-        grade: 'Grade',
+        complete: 'Lesson Complete!',
+        performance: "You've strengthened your skills!",
+        grade: 'Accuracy',
         score: 'Score',
-        earned: 'XP Gained',
-        newQuiz: 'New Quiz',
-        next: 'Next Question',
-        finish: 'Finish',
-        correct: 'Correct',
-        incorrect: 'Incorrect'
+        earned: 'Total XP',
+        newQuiz: 'Start Another',
+        next: 'Next',
+        finish: 'Complete Lesson',
+        correct: 'Correct!',
+        incorrect: 'Incorrect',
+        combo: 'Combo'
     },
     zh: {
         configTitle: '选择主题',
@@ -57,23 +57,22 @@ const translations = {
         start: '开始测验',
         loadingTitle: '正在生成测验...',
         loadingDesc: '正在查阅剑桥大纲',
-        errorTitle: '连接问题',
-        errorDesc: '请稍后重试。',
         backSetup: '返回',
-        complete: '测验完成',
-        performance: "表现总结",
-        grade: '等级',
+        complete: '课程完成！',
+        performance: "您的技能已得到强化！",
+        grade: '准确率',
         score: '分数',
-        earned: '获得经验',
-        newQuiz: '新测验',
+        earned: '总经验',
+        newQuiz: '开始新测验',
         next: '下一题',
-        finish: '完成',
-        correct: '正确',
-        incorrect: '错误'
+        finish: '完成课程',
+        correct: '正确！',
+        incorrect: '错误',
+        combo: '连击'
     }
 };
 
-const QuizMode: React.FC<QuizProps> = ({ updateStats, language }) => {
+const QuizMode: React.FC<QuizProps> = ({ onAwardXP, language }) => {
   const t = translations[language];
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [currentQIndex, setCurrentQIndex] = useState(0);
@@ -84,6 +83,10 @@ const QuizMode: React.FC<QuizProps> = ({ updateStats, language }) => {
   const [completed, setCompleted] = useState(false);
   const [quizState, setQuizState] = useState<'SETUP' | 'PLAYING' | 'FINISHED'>('SETUP');
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
+  
+  // Gamification States
+  const [combo, setCombo] = useState(0);
+  const [sessionXP, setSessionXP] = useState(0);
 
   const startQuiz = async () => {
     setQuizState('PLAYING');
@@ -91,6 +94,8 @@ const QuizMode: React.FC<QuizProps> = ({ updateStats, language }) => {
     setCompleted(false);
     setCurrentQIndex(0);
     setScore(0);
+    setCombo(0);
+    setSessionXP(0);
     setSelectedOption(null);
     setIsAnswered(false);
     const qs = await generateQuizQuestions(selectedTopics, language);
@@ -102,8 +107,26 @@ const QuizMode: React.FC<QuizProps> = ({ updateStats, language }) => {
     if (isAnswered) return;
     setSelectedOption(index);
     setIsAnswered(true);
-    if (index === questions[currentQIndex].correctIndex) {
+
+    const isCorrect = index === questions[currentQIndex].correctIndex;
+    
+    if (isCorrect) {
       setScore(s => s + 1);
+      const newCombo = combo + 1;
+      setCombo(newCombo);
+      
+      // XP Calculation: Base (10) + Combo Bonus (capped at 5)
+      const baseXP = 10;
+      const bonusXP = Math.min(newCombo, 5);
+      const totalQXP = baseXP + bonusXP;
+      
+      setSessionXP(prev => prev + totalQXP);
+      onAwardXP(totalQXP, newCombo > 1 ? `${t.combo} x${newCombo}!` : 'Correct');
+    } else {
+      setCombo(0); // Reset combo on error
+      // Still award tiny XP for effort/practice, but no combo
+      onAwardXP(2, 'Practice'); 
+      setSessionXP(prev => prev + 2);
     }
   };
 
@@ -113,10 +136,18 @@ const QuizMode: React.FC<QuizProps> = ({ updateStats, language }) => {
       setSelectedOption(null);
       setIsAnswered(false);
     } else {
+      finishQuiz();
+    }
+  };
+
+  const finishQuiz = () => {
       setCompleted(true);
       setQuizState('FINISHED');
-      updateStats(score * 100);
-    }
+      
+      // Completion Bonus
+      const completionBonus = 20;
+      setSessionXP(prev => prev + completionBonus);
+      onAwardXP(completionBonus, 'Lesson Complete');
   };
 
   const toggleTopic = (topic: string) => {
@@ -130,7 +161,7 @@ const QuizMode: React.FC<QuizProps> = ({ updateStats, language }) => {
   // Bento Grid Setup for Topics
   if (quizState === 'SETUP') {
       return (
-        <div className="flex flex-col h-full w-full p-8 overflow-y-auto custom-scrollbar">
+        <div className="flex flex-col h-full w-full p-8 overflow-y-auto custom-scrollbar animate-enter">
             <div className="max-w-5xl mx-auto w-full">
                 <div className="flex items-center justify-between mb-8">
                     <div>
@@ -140,7 +171,7 @@ const QuizMode: React.FC<QuizProps> = ({ updateStats, language }) => {
                     <button
                         onClick={startQuiz}
                         disabled={selectedTopics.length === 0}
-                        className="px-6 py-2.5 bg-[#007AFF] hover:bg-[#0062cc] rounded-full text-white font-medium shadow-apple transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-6 py-2.5 bg-[#007AFF] hover:bg-[#0062cc] rounded-full text-white font-medium shadow-tier-2 interactive disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {t.start}
                     </button>
@@ -156,7 +187,7 @@ const QuizMode: React.FC<QuizProps> = ({ updateStats, language }) => {
                             <button 
                                 key={topic}
                                 onClick={() => toggleTopic(topic)}
-                                className={`bento-card p-5 h-32 flex flex-col justify-between text-left relative overflow-hidden group rounded-[2rem] ${isSelected ? 'ring-2 ring-[#007AFF] ring-offset-2 ring-offset-[#F5F5F7] dark:ring-offset-black' : ''}`}
+                                className={`glass-panel p-5 h-32 flex flex-col justify-between text-left relative overflow-hidden group rounded-[2rem] interactive ${isSelected ? 'ring-2 ring-[#007AFF] ring-offset-2 ring-offset-[#F5F5F7] dark:ring-offset-black' : ''}`}
                             >
                                 <div className={`absolute top-0 right-0 w-16 h-16 bg-gradient-to-br ${colorClass} to-transparent opacity-10 rounded-bl-[2rem] transition-opacity group-hover:opacity-20`}></div>
                                 <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${isSelected ? 'bg-[#007AFF] text-white' : 'bg-gray-100 dark:bg-white/10 text-gray-400'}`}>
@@ -185,28 +216,28 @@ const QuizMode: React.FC<QuizProps> = ({ updateStats, language }) => {
   }
 
   if (completed) {
-    const percentage = (score / questions.length) * 100;
+    const percentage = Math.round((score / questions.length) * 100);
     return (
-      <div className="flex items-center justify-center h-full p-8 animate-scale-in">
-        <div className="bento-card p-8 md:p-12 text-center max-w-md w-full bg-white dark:bg-[#1C1C1E] rounded-[2.5rem]">
+      <div className="flex items-center justify-center h-full p-8 animate-enter">
+        <div className="glass-panel p-8 md:p-12 text-center max-w-md w-full rounded-[2.5rem] shadow-tier-2">
           <h2 className="text-2xl font-bold text-black dark:text-white mb-2">{t.complete}</h2>
-          <div className="text-6xl font-bold text-[#007AFF] my-6">{score}/{questions.length}</div>
+          <div className="text-6xl font-bold text-orange-500 my-6">+{sessionXP} XP</div>
           <p className="text-gray-500 mb-8">{t.performance}</p>
           <div className="grid grid-cols-2 gap-4 mb-8">
               <div className="bg-gray-50 dark:bg-white/5 p-4 rounded-[2rem]">
                   <div className="text-xs text-gray-400 uppercase font-bold">{t.grade}</div>
                   <div className="text-xl font-bold text-black dark:text-white mt-1">
-                      {percentage >= 80 ? 'A' : percentage >= 60 ? 'B' : percentage >= 50 ? 'C' : 'U'}
+                      {percentage}%
                   </div>
               </div>
               <div className="bg-gray-50 dark:bg-white/5 p-4 rounded-[2rem]">
                   <div className="text-xs text-gray-400 uppercase font-bold">{t.earned}</div>
-                  <div className="text-xl font-bold text-orange-500 mt-1">+{score * 100}</div>
+                  <div className="text-xl font-bold text-orange-500 mt-1">{sessionXP}</div>
               </div>
           </div>
           <button 
             onClick={() => setQuizState('SETUP')}
-            className="w-full py-3 bg-[#007AFF] hover:bg-[#0062cc] text-white font-semibold rounded-2xl transition-all"
+            className="w-full py-3 bg-[#007AFF] hover:bg-[#0062cc] text-white font-semibold rounded-2xl interactive"
           >
             {t.newQuiz}
           </button>
@@ -219,21 +250,25 @@ const QuizMode: React.FC<QuizProps> = ({ updateStats, language }) => {
 
   return (
     <div className="flex flex-col items-center justify-center h-full w-full p-8 max-w-3xl mx-auto">
-      {/* Progress Bar */}
-      <div className="w-full mb-8">
-          <div className="flex justify-between text-xs font-medium text-gray-400 mb-2">
-              <span>Question {currentQIndex + 1} of {questions.length}</span>
-              <span>Score: {score}</span>
+      {/* Top Bar: Progress & Combo */}
+      <div className="w-full mb-8 flex items-center space-x-4">
+          <div className="flex-1">
+            <div className="w-full h-2.5 bg-gray-200 dark:bg-white/10 rounded-full overflow-hidden">
+                <div 
+                    className="h-full bg-[#007AFF] transition-all duration-300 rounded-full"
+                    style={{ width: `${((currentQIndex) / questions.length) * 100}%` }}
+                ></div>
+            </div>
           </div>
-          <div className="w-full h-1.5 bg-gray-200 dark:bg-white/10 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-[#007AFF] transition-all duration-300"
-                style={{ width: `${((currentQIndex + 1) / questions.length) * 100}%` }}
-              ></div>
-          </div>
+          {combo > 1 && (
+            <div className="flex items-center space-x-1 px-3 py-1 bg-orange-100 dark:bg-orange-500/20 text-orange-500 rounded-full animate-bounce">
+                <FlameIcon />
+                <span className="font-bold text-sm">x{combo}</span>
+            </div>
+          )}
       </div>
 
-      <div className="w-full animate-fade-in">
+      <div className="w-full animate-enter">
         {/* Question */}
         <h3 className="text-2xl font-bold text-black dark:text-white mb-8 leading-tight">
             {currentQ.question}
@@ -260,7 +295,7 @@ const QuizMode: React.FC<QuizProps> = ({ updateStats, language }) => {
                         key={idx}
                         onClick={() => handleOptionClick(idx)}
                         disabled={isAnswered}
-                        className={`p-4 rounded-[1.5rem] border transition-all duration-200 text-left font-medium text-base md:text-lg flex items-center ${cardClass} ${!isAnswered ? 'bg-white dark:bg-[#2C2C2E] text-black dark:text-white shadow-sm border-black/5 dark:border-white/5' : ''}`}
+                        className={`p-4 rounded-[1.5rem] border transition-all duration-200 text-left font-medium text-base md:text-lg flex items-center ${cardClass} ${!isAnswered ? 'glass-panel text-black dark:text-white interactive' : ''}`}
                     >
                         <span className="w-8 h-8 rounded-full border border-current flex items-center justify-center text-xs mr-4 opacity-70 flex-shrink-0">
                             {String.fromCharCode(65 + idx)}
@@ -271,19 +306,19 @@ const QuizMode: React.FC<QuizProps> = ({ updateStats, language }) => {
             })}
         </div>
 
-        {/* Feedback */}
-        <div className="mt-8 h-24">
+        {/* Feedback Bottom Sheet */}
+        <div className="mt-8 h-32">
             {isAnswered && (
-                <div className="animate-fade-in flex items-start justify-between p-4 bg-gray-50 dark:bg-white/5 rounded-[2rem]">
-                    <div className="flex-1 mr-4">
-                        <div className={`font-bold mb-1 ${selectedOption === currentQ.correctIndex ? 'text-[#34C759]' : 'text-[#FF3B30]'}`}>
+                <div className={`animate-enter flex flex-col md:flex-row items-center justify-between p-6 rounded-[2rem] shadow-tier-2 ${selectedOption === currentQ.correctIndex ? 'bg-green-50 dark:bg-[#34C759]/10' : 'bg-red-50 dark:bg-[#FF3B30]/10'}`}>
+                    <div className="flex-1 mb-4 md:mb-0 mr-4">
+                        <div className={`font-bold text-lg mb-1 ${selectedOption === currentQ.correctIndex ? 'text-[#34C759]' : 'text-[#FF3B30]'}`}>
                             {selectedOption === currentQ.correctIndex ? t.correct : t.incorrect}
                         </div>
                         <p className="text-sm text-gray-600 dark:text-gray-300">{currentQ.explanation}</p>
                     </div>
                     <button
                         onClick={nextQuestion}
-                        className="px-6 py-2 bg-[#007AFF] text-white font-semibold rounded-full text-sm hover:bg-[#0062cc]"
+                        className={`px-8 py-3 font-bold rounded-2xl text-white shadow-lg interactive ${selectedOption === currentQ.correctIndex ? 'bg-[#34C759] hover:bg-[#2da84a] shadow-green-500/20' : 'bg-[#FF3B30] hover:bg-[#d6352b] shadow-red-500/20'}`}
                     >
                         {currentQIndex === questions.length - 1 ? t.finish : t.next}
                     </button>

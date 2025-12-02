@@ -34,19 +34,14 @@
               apple: {
                 gray: '#F5F5F7',
                 dark: '#000000',
-                card: '#FFFFFF',
-                cardDark: '#1C1C1E',
                 blue: '#007AFF',
                 green: '#34C759',
                 red: '#FF3B30',
                 orange: '#FF9500',
-                purple: '#AF52DE',
               }
             },
-            boxShadow: {
-              'apple': '0 4px 12px rgba(0,0,0,0.08)',
-              'apple-hover': '0 8px 24px rgba(0,0,0,0.12)',
-              'apple-dark': '0 4px 12px rgba(0,0,0,0.4)',
+            transitionTimingFunction: {
+              'apple-ease': 'cubic-bezier(.22,.9,.31,1)',
             }
           }
         }
@@ -55,23 +50,34 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
       :root {
+        /* Colors */
         --bg-color: #F5F5F7;
         --text-primary: #1D1D1F;
-        --text-secondary: #86868B;
-        --card-bg: #FFFFFF;
-        --border-color: rgba(0,0,0,0.05);
-        --glass-bg: rgba(255, 255, 255, 0.75);
+        
+        /* Shadows (Light Mode) */
+        --shadow-low: 0 6px 12px rgba(0,0,0,0.08);
+        --shadow-mid: 0 12px 24px rgba(0,0,0,0.12);
+        --shadow-high: 0 20px 40px rgba(0,0,0,0.18);
+
+        /* Glass (Light Mode) */
+        --glass-bg: rgba(255, 255, 255, 0.65);
         --glass-border: rgba(255, 255, 255, 0.4);
+        --glass-blur: 10px;
       }
 
       html.dark {
+        /* Colors */
         --bg-color: #000000;
         --text-primary: #F5F5F7;
-        --text-secondary: #86868B;
-        --card-bg: #1C1C1E;
-        --border-color: rgba(255,255,255,0.1);
-        --glass-bg: rgba(28, 28, 30, 0.75);
-        --glass-border: rgba(255, 255, 255, 0.1);
+
+        /* Shadows (Dark Mode - Slightly Stronger/Darker) */
+        --shadow-low: 0 6px 12px rgba(0,0,0,0.28);
+        --shadow-mid: 0 12px 24px rgba(0,0,0,0.32);
+        --shadow-high: 0 20px 40px rgba(0,0,0,0.38);
+
+        /* Glass (Dark Mode) */
+        --glass-bg: rgba(28, 28, 30, 0.60);
+        --glass-border: rgba(255, 255, 255, 0.08);
       }
 
       body {
@@ -79,88 +85,90 @@
         background-color: var(--bg-color);
         color: var(--text-primary);
         overflow: hidden;
-        transition: background-color 0.4s ease, color 0.4s ease;
+        /* Global Transition Optimization */
+        transition: background-color 0.4s cubic-bezier(.22,.9,.31,1), color 0.4s cubic-bezier(.22,.9,.31,1);
         -webkit-font-smoothing: antialiased;
       }
 
-      /* Apple-style Scrollbar */
-      ::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
-      }
-      ::-webkit-scrollbar-track {
-        background: transparent;
-      }
-      ::-webkit-scrollbar-thumb {
-        background: rgba(134, 134, 139, 0.3);
-        border-radius: 4px;
-      }
-      ::-webkit-scrollbar-thumb:hover {
-        background: rgba(134, 134, 139, 0.5);
+      /* --- GLOBAL COMPONENT CLASSES --- */
+
+      /* 1. Glass Panel (The core material) */
+      .glass-panel {
+        background-color: var(--glass-bg);
+        backdrop-filter: blur(var(--glass-blur));
+        -webkit-backdrop-filter: blur(var(--glass-blur));
+        border: 1px solid var(--glass-border);
+        box-shadow: var(--shadow-low);
       }
 
-      /* Frosted Glass (Apple Style) */
-      .frosted-glass {
-        background: var(--glass-bg);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border: 1px solid var(--border-color);
-      }
-
-      /* Bento Grid Card */
-      .bento-card {
-        background-color: var(--card-bg);
-        border-radius: 1.5rem; /* 24px */
-        border: 1px solid var(--border-color);
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-      }
-      .bento-card:hover {
-        transform: scale(1.01);
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
-      }
-
-      /* Animations */
-      @keyframes fade-in {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-      }
-      .animate-fade-in {
-        animation: fade-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-      }
-
-      @keyframes scale-in {
-        from { opacity: 0; transform: scale(0.95); }
-        to { opacity: 1; transform: scale(1); }
-      }
-      .animate-scale-in {
-        animation: scale-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      /* 2. Interactive Element (Buttons, Cards) */
+      .interactive {
+        transition-property: transform, background-color, box-shadow, opacity;
+        transition-duration: 200ms;
+        transition-timing-function: cubic-bezier(.22,.9,.31,1);
+        cursor: pointer;
       }
       
-      /* Typography Tweaks */
-      h1, h2, h3, h4, h5, h6 {
-        letter-spacing: -0.02em;
+      .interactive:active {
+        transform: scale(0.98);
       }
 
-      /* Markdown Styles */
+      /* 3. Shadow Tiers */
+      .shadow-tier-1 { box-shadow: var(--shadow-low); }
+      .shadow-tier-2 { box-shadow: var(--shadow-mid); }
+      .shadow-tier-3 { box-shadow: var(--shadow-high); }
+
+      /* --- ANIMATIONS --- */
+
+      @keyframes enter-smooth {
+        from { 
+          opacity: 0; 
+          transform: translate3d(0, 10px, 0) scale(0.99); 
+        }
+        to { 
+          opacity: 1; 
+          transform: translate3d(0, 0, 0) scale(1); 
+        }
+      }
+      
+      @keyframes slide-in-left {
+        from {
+          opacity: 0;
+          transform: translate3d(-16px, 0, 0);
+        }
+        to {
+          opacity: 1;
+          transform: translate3d(0, 0, 0);
+        }
+      }
+
+      .animate-enter {
+        animation: enter-smooth 0.3s cubic-bezier(.22,.9,.31,1) forwards;
+        will-change: transform, opacity;
+      }
+
+      .animate-slide-in {
+        animation: slide-in-left 0.25s cubic-bezier(.22,.9,.31,1) forwards;
+        will-change: transform, opacity;
+      }
+
+      /* Scrollbar */
+      ::-webkit-scrollbar { width: 6px; height: 6px; }
+      ::-webkit-scrollbar-track { background: transparent; }
+      ::-webkit-scrollbar-thumb { background: rgba(134, 134, 139, 0.3); border-radius: 10px; }
+      ::-webkit-scrollbar-thumb:hover { background: rgba(134, 134, 139, 0.5); }
+
+      /* Markdown & Syntax */
       .prose code {
-        color: #FF2D55; /* Apple Pink/Red for code */
-        background: rgba(0,0,0,0.05);
+        color: #FF2D55;
+        background: rgba(125, 125, 125, 0.1);
         padding: 2px 5px;
         border-radius: 6px;
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
         font-size: 0.9em;
       }
-      html.dark .prose code {
-        color: #FF375F;
-        background: rgba(255,255,255,0.1);
-      }
-      .prose pre {
-        background: transparent !important;
-        padding: 0 !important;
-        margin: 0 !important;
-      }
-      .prose p { margin-bottom: 0.8em; }
+      html.dark .prose code { color: #FF375F; }
+      .prose pre { background: transparent !important; margin: 0 !important; }
     </style>
   <script type="importmap">
 {

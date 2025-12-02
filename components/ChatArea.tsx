@@ -1,9 +1,9 @@
+
 import React, { useState, useRef, useEffect } from 'react';
-import { Message, Sender, Attachment, TeachingPersona, Language } from '../types';
-import { SendIcon, AttachmentIcon, XIcon, RobotIcon, CopyIcon, CheckIcon } from './Icons';
+import { Message, Sender, Attachment, TeachingPersona, Language, AwardXPCallback, ChatConfig } from '../types';
+import { SendIcon, AttachmentIcon, XIcon, RobotIcon, CopyIcon, CheckIcon, BrainIcon, SearchIcon, GlobeIcon } from './Icons';
 import { chatWithGemini } from '../services/geminiService';
 
-// Global declarations for libraries loaded via CDN
 declare global {
   interface Window {
     mermaid: any;
@@ -21,6 +21,7 @@ declare global {
 
 interface ChatAreaProps {
     language: Language;
+    onAwardXP: AwardXPCallback;
 }
 
 const translations = {
@@ -34,7 +35,10 @@ const translations = {
         send: 'Send',
         greeting: "Hello. I'm your A-Level Computer Science tutor. How can I help you today?",
         copy: 'Copy',
-        copied: 'Copied'
+        copied: 'Copied',
+        thinking: 'Deep Think',
+        search: 'Search',
+        sources: 'Sources'
     },
     zh: {
         standard: '标准',
@@ -46,7 +50,10 @@ const translations = {
         send: '发送',
         greeting: "你好。我是你的 A-Level 计算机科学导师。今天我能为你做些什么？",
         copy: '复制',
-        copied: '已复制'
+        copied: '已复制',
+        thinking: '深度思考',
+        search: '联网搜索',
+        sources: '来源'
     }
 };
 
@@ -67,12 +74,12 @@ const CodeBlock: React.FC<{ code: string; language: string; t: any }> = ({ code,
     };
 
     return (
-        <div className="my-3 rounded-2xl overflow-hidden border border-gray-200 dark:border-white/10 bg-[#1e1e1e] shadow-sm">
+        <div className="my-3 rounded-2xl overflow-hidden border border-gray-200 dark:border-white/10 bg-[#1e1e1e] shadow-tier-1">
             <div className="flex items-center justify-between px-4 py-2 bg-[#252526] border-b border-white/5">
                 <span className="text-[10px] font-mono text-gray-400 lowercase">{language || 'code'}</span>
                 <button 
                     onClick={handleCopy}
-                    className="flex items-center space-x-1.5 text-[10px] text-gray-400 hover:text-white transition-colors px-2 py-1 hover:bg-white/10 rounded-full"
+                    className="flex items-center space-x-1.5 text-[10px] text-gray-400 hover:text-white transition-colors px-2 py-1 hover:bg-white/10 rounded-full interactive"
                 >
                     {copied ? <CheckIcon /> : <CopyIcon />}
                     <span>{copied ? t.copied : t.copy}</span>
@@ -122,7 +129,7 @@ const MarkdownText: React.FC<{ content: string }> = ({ content }) => {
 };
 
 
-const ChatArea: React.FC<ChatAreaProps> = ({ language }) => {
+const ChatArea: React.FC<ChatAreaProps> = ({ language, onAwardXP }) => {
   const t = translations[language];
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -130,6 +137,7 @@ const ChatArea: React.FC<ChatAreaProps> = ({ language }) => {
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [persona, setPersona] = useState<TeachingPersona>('standard');
+  const [chatConfig, setChatConfig] = useState<ChatConfig>({ useSearch: false, useThinking: false });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -178,21 +186,6 @@ const ChatArea: React.FC<ChatAreaProps> = ({ language }) => {
     }]);
   };
 
-  useEffect(() => {
-    const handlePaste = (e: ClipboardEvent) => {
-      const items = e.clipboardData?.items;
-      if (!items) return;
-      for (const item of items) {
-        if (item.type.indexOf('image') !== -1) {
-          const blob = item.getAsFile();
-          if (blob) processFile(blob);
-        }
-      }
-    };
-    window.addEventListener('paste', handlePaste);
-    return () => window.removeEventListener('paste', handlePaste);
-  }, []);
-
   const processFile = (file: File) => {
     setUploadProgress(10);
     const reader = new FileReader();
@@ -204,8 +197,10 @@ const ChatArea: React.FC<ChatAreaProps> = ({ language }) => {
     reader.onloadend = () => {
       const base64String = reader.result as string;
       const base64Data = base64String.split(',')[1];
+      const type = file.type.startsWith('image/') ? 'image' : file.type.startsWith('video/') ? 'video' : 'file';
+      
       setAttachments(prev => [...prev, {
-        type: 'image',
+        type: type as any,
         mimeType: file.type,
         data: base64Data,
         name: file.name
@@ -238,15 +233,18 @@ const ChatArea: React.FC<ChatAreaProps> = ({ language }) => {
     setAttachments([]);
     setIsLoading(true);
 
+    onAwardXP(2, 'Question Asked');
+
     const history = messages.slice(-10).map(m => `${m.sender}: ${m.content}`);
-    const responseText = await chatWithGemini(history, userMsg.content, currentAttachments, persona, language);
+    const response = await chatWithGemini(history, userMsg.content, currentAttachments, persona, language, chatConfig);
 
     const aiMsg: Message = {
       id: (Date.now() + 1).toString(),
       sender: Sender.AI,
-      content: responseText,
+      content: response.text,
       timestamp: Date.now(),
-      persona: persona
+      persona: persona,
+      groundingSources: response.groundingSources
     };
 
     setMessages(prev => [...prev, aiMsg]);
@@ -303,7 +301,7 @@ const ChatArea: React.FC<ChatAreaProps> = ({ language }) => {
             parts.push(...processTextChunk(content.substring(lastIndex, match.index), `chunk-${lastIndex}`));
         }
         parts.push(
-            <div key={`mermaid-${match.index}`} className="my-3 p-2 bg-white dark:bg-black rounded-xl border border-gray-200 dark:border-white/10 overflow-x-auto">
+            <div key={`mermaid-${match.index}`} className="my-3 p-2 bg-white dark:bg-black rounded-xl border border-gray-200 dark:border-white/10 overflow-x-auto shadow-tier-1">
                 <div className="mermaid text-center">
                     {match[1]}
                 </div>
@@ -319,53 +317,68 @@ const ChatArea: React.FC<ChatAreaProps> = ({ language }) => {
   };
 
   return (
-    <div className="flex flex-col h-full w-full relative">
+    <div className="flex flex-col h-full w-full relative animate-enter">
       
       {/* Messages Area */}
-      <div className="flex-1 w-full h-full overflow-y-auto px-6 pt-6 pb-48 custom-scrollbar">
+      <div className="flex-1 w-full h-full overflow-y-auto px-6 pt-6 pb-56 custom-scrollbar">
         <div className="max-w-4xl mx-auto space-y-6">
             {messages.map((msg) => (
-            <div
-                key={msg.id}
-                className={`flex w-full ${msg.sender === Sender.User ? 'justify-end' : 'justify-start'}`}
-            >
+            <div key={msg.id} className={`flex w-full ${msg.sender === Sender.User ? 'justify-end' : 'justify-start'}`}>
                 {msg.sender === Sender.AI && (
-                    <div className="w-8 h-8 mr-3 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-300 flex-shrink-0 self-end mb-1 shadow-sm">
+                    <div className="w-8 h-8 mr-3 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-300 flex-shrink-0 self-end mb-1 shadow-tier-1">
                         <RobotIcon />
                     </div>
                 )}
-                <div
-                className={`max-w-[85%] md:max-w-[75%] px-5 py-3 rounded-[2rem] shadow-sm relative text-[15px] animate-scale-in border border-transparent ${
-                    msg.sender === Sender.User
-                    ? 'bg-[#007AFF] text-white shadow-blue-500/10'
-                    : 'bg-[#F2F2F7] dark:bg-[#2C2C2E] text-black dark:text-white border-black/5 dark:border-white/5'
-                }`}
-                >
-                {msg.attachments && msg.attachments.length > 0 && (
-                    <div className="mb-3 flex flex-wrap gap-2">
-                    {msg.attachments.map((att, idx) => (
-                        <div key={idx} className="relative rounded-3xl overflow-hidden border border-black/5 dark:border-white/10 shadow-sm">
-                        <img 
-                            src={`data:${att.mimeType};base64,${att.data}`} 
-                            alt="attachment" 
-                            className="max-h-40 object-cover"
-                        />
+                <div className={`max-w-[85%] md:max-w-[75%] flex flex-col items-${msg.sender === Sender.User ? 'end' : 'start'}`}>
+                    <div
+                    className={`px-5 py-3 rounded-[2rem] shadow-tier-1 relative text-[15px] animate-enter border ${
+                        msg.sender === Sender.User
+                        ? 'bg-[#007AFF] text-white border-transparent'
+                        : 'glass-panel text-black dark:text-white border-white/40 dark:border-white/10'
+                    }`}
+                    >
+                    {msg.attachments && msg.attachments.length > 0 && (
+                        <div className="mb-3 flex flex-wrap gap-2">
+                        {msg.attachments.map((att, idx) => (
+                            <div key={idx} className="relative rounded-3xl overflow-hidden border border-black/5 dark:border-white/10 shadow-sm">
+                                {att.type === 'video' ? (
+                                    <div className="bg-black text-white px-2 py-1 text-xs">{att.name} (Video)</div>
+                                ) : (
+                                    <img 
+                                        src={`data:${att.mimeType};base64,${att.data}`} 
+                                        alt="attachment" 
+                                        className="max-h-40 object-cover"
+                                    />
+                                )}
+                            </div>
+                        ))}
                         </div>
-                    ))}
+                    )}
+                    <div className="w-full overflow-hidden">
+                        {renderMessageContent(msg.content)}
                     </div>
-                )}
-                <div className="w-full overflow-hidden">
-                    {renderMessageContent(msg.content)}
-                </div>
+                    </div>
+                    
+                    {/* Grounding Sources */}
+                    {msg.groundingSources && msg.groundingSources.length > 0 && (
+                        <div className="mt-2 ml-2 flex flex-wrap gap-2">
+                            {msg.groundingSources.map((source, idx) => (
+                                <a key={idx} href={source.uri} target="_blank" rel="noopener noreferrer" className="flex items-center space-x-1 glass-panel rounded-full px-2 py-1 text-[10px] text-gray-500 hover:text-blue-500 interactive">
+                                    <GlobeIcon />
+                                    <span className="truncate max-w-[100px]">{source.title}</span>
+                                </a>
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
             ))}
             {isLoading && (
-            <div className="flex justify-start animate-fade-in">
+            <div className="flex justify-start animate-enter">
                 <div className="w-8 h-8 mr-3 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-300 flex-shrink-0 self-end mb-1">
                     <RobotIcon />
                 </div>
-                <div className="bg-[#F2F2F7] dark:bg-[#2C2C2E] px-4 py-3 rounded-[2rem] flex items-center space-x-1.5 h-[46px] shadow-sm border border-black/5 dark:border-white/5">
+                <div className="glass-panel px-4 py-3 rounded-[2rem] flex items-center space-x-1.5 h-[46px] shadow-tier-1">
                     <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
                     <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.15s' }}></div>
                     <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.3s' }}></div>
@@ -379,31 +392,55 @@ const ChatArea: React.FC<ChatAreaProps> = ({ language }) => {
       {/* Input Area (Floating) */}
       <div className="absolute bottom-6 left-0 right-0 px-6 z-20 flex flex-col items-center pointer-events-none">
          <div className="pointer-events-auto w-full max-w-3xl flex flex-col items-center">
-            {/* iOS Style Segmented Control */}
-            <div className="flex items-center p-1 rounded-full bg-white/60 dark:bg-[#2C2C2E]/60 backdrop-blur-xl border border-white/20 dark:border-white/5 mb-3 shadow-sm ring-1 ring-black/5 dark:ring-white/5">
-                {(['standard', 'socratic', 'examiner'] as TeachingPersona[]).map((p) => (
-                    <button
-                        key={p}
-                        onClick={() => setPersona(p)}
-                        className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-300 ${
-                            persona === p 
-                            ? 'bg-white dark:bg-[#636366] text-black dark:text-white shadow-md' 
-                            : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'
-                        }`}
+            
+            {/* Toggles */}
+            <div className="flex items-center gap-2 mb-3">
+                {/* Persona Switch */}
+                <div className="flex items-center p-1 rounded-full glass-panel shadow-tier-1">
+                    {(['standard', 'socratic', 'examiner'] as TeachingPersona[]).map((p) => (
+                        <button
+                            key={p}
+                            onClick={() => setPersona(p)}
+                            className={`px-4 py-1.5 rounded-full text-xs font-medium interactive ${
+                                persona === p 
+                                ? 'bg-white dark:bg-[#636366] text-black dark:text-white shadow-tier-1' 
+                                : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'
+                            }`}
+                        >
+                            {t[p]}
+                        </button>
+                    ))}
+                </div>
+
+                {/* Features Toggles */}
+                <div className="flex items-center p-1 rounded-full glass-panel shadow-tier-1">
+                    <button 
+                        onClick={() => setChatConfig(prev => ({ ...prev, useThinking: !prev.useThinking }))}
+                        className={`p-1.5 rounded-full interactive ${chatConfig.useThinking ? 'bg-purple-100 text-purple-600 dark:bg-purple-500/20 dark:text-purple-300' : 'text-gray-400 hover:text-purple-500'}`}
+                        title={t.thinking}
                     >
-                        {t[p]}
+                        <BrainIcon />
                     </button>
-                ))}
+                    <button 
+                        onClick={() => setChatConfig(prev => ({ ...prev, useSearch: !prev.useSearch }))}
+                        className={`p-1.5 rounded-full interactive ${chatConfig.useSearch ? 'bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-300' : 'text-gray-400 hover:text-blue-500'}`}
+                        title={t.search}
+                    >
+                        <SearchIcon />
+                    </button>
+                </div>
             </div>
 
             <div className="relative w-full">
                 {/* Attachments Preview */}
                 {attachments.length > 0 && (
-                    <div className="absolute bottom-full left-0 mb-2 flex flex-wrap gap-2 p-3 bg-white/80 dark:bg-[#1C1C1E]/80 backdrop-blur-xl rounded-[2rem] border border-black/5 dark:border-white/5 shadow-apple dark:shadow-apple-dark">
+                    <div className="absolute bottom-full left-0 mb-2 flex flex-wrap gap-2 p-3 glass-panel rounded-[2rem] shadow-tier-2">
                         {attachments.map((att, idx) => (
                             <div key={idx} className="relative group">
-                                <div className="w-12 h-12 rounded-2xl overflow-hidden border border-black/10 dark:border-white/10">
-                                    <img src={`data:${att.mimeType};base64,${att.data}`} alt="preview" className="w-full h-full object-cover" />
+                                <div className="w-12 h-12 rounded-2xl overflow-hidden border border-black/10 dark:border-white/10 bg-black/10 flex items-center justify-center">
+                                    {att.type === 'video' ? <span className="text-[8px] text-center">Video</span> : (
+                                        <img src={`data:${att.mimeType};base64,${att.data}`} alt="preview" className="w-full h-full object-cover" />
+                                    )}
                                 </div>
                                 <button 
                                     onClick={() => setAttachments(prev => prev.filter((_, i) => i !== idx))}
@@ -417,19 +454,19 @@ const ChatArea: React.FC<ChatAreaProps> = ({ language }) => {
                 )}
 
                 {/* Input Bar */}
-                <div className="frosted-glass p-1.5 rounded-[2rem] shadow-apple dark:shadow-apple-dark flex items-center gap-2 relative transition-all duration-200 focus-within:ring-2 focus-within:ring-[#007AFF]/30 bg-white/80 dark:bg-[#1C1C1E]/80 border border-white/40 dark:border-white/5">
+                <div className="glass-panel p-1.5 rounded-[2rem] shadow-tier-3 flex items-center gap-2 relative transition-all duration-200 focus-within:ring-2 focus-within:ring-[#007AFF]/30 focus-within:shadow-tier-3">
                     <input 
                         type="file" 
                         multiple 
                         ref={fileInputRef} 
                         className="hidden" 
                         onChange={handleFileSelect} 
-                        accept="image/*,.pdf,.txt,.py,.java,.vb"
+                        accept="image/*,video/*,.pdf,.txt,.py,.java,.vb"
                     />
                     
                     <button 
                         onClick={() => fileInputRef.current?.click()}
-                        className="p-2.5 text-gray-400 hover:text-[#007AFF] hover:bg-black/5 dark:hover:bg-white/10 rounded-full transition-all active:scale-95"
+                        className="p-2.5 text-gray-400 hover:text-[#007AFF] hover:bg-black/5 dark:hover:bg-white/10 rounded-full interactive"
                     >
                         <AttachmentIcon />
                     </button>
@@ -454,10 +491,10 @@ const ChatArea: React.FC<ChatAreaProps> = ({ language }) => {
                     <button 
                         onClick={handleSend}
                         disabled={(!input.trim() && attachments.length === 0) || isLoading}
-                        className={`p-2 rounded-full transition-all duration-200 flex items-center justify-center mr-1 ${
+                        className={`p-2 rounded-full interactive flex items-center justify-center mr-1 ${
                             (!input.trim() && attachments.length === 0) || isLoading
                             ? 'bg-gray-200 dark:bg-white/10 text-gray-400 cursor-not-allowed'
-                            : 'bg-[#007AFF] text-white hover:bg-[#0062cc] shadow-md shadow-blue-500/20 active:scale-95'
+                            : 'bg-[#007AFF] text-white hover:bg-[#0062cc] shadow-tier-1'
                         }`}
                     >
                         <SendIcon />

@@ -1,10 +1,11 @@
 
 import React, { useState } from 'react';
 import { analyzeCode } from '../services/geminiService';
-import { Language } from '../types';
+import { Language, AwardXPCallback } from '../types';
 
 interface SandboxProps {
     language: Language;
+    onAwardXP: AwardXPCallback;
 }
 
 const translations = {
@@ -34,7 +35,7 @@ const translations = {
     }
 };
 
-const CodeSandbox: React.FC<SandboxProps> = ({ language }) => {
+const CodeSandbox: React.FC<SandboxProps> = ({ language, onAwardXP }) => {
     const t = translations[language];
     const [code, setCode] = useState('');
     const [lang, setLang] = useState('Python');
@@ -48,11 +49,13 @@ const CodeSandbox: React.FC<SandboxProps> = ({ language }) => {
         const analysis = await analyzeCode(code, lang, language);
         setOutput(analysis);
         setIsRunning(false);
+        // XP for active experimentation/learning
+        onAwardXP(5, 'Code Run');
     };
 
     return (
-        <div className="p-8 h-full overflow-y-auto w-full max-w-6xl mx-auto custom-scrollbar">
-            <div className="flex flex-col h-full animate-fade-in-up">
+        <div className="p-8 h-full overflow-y-auto w-full max-w-6xl mx-auto custom-scrollbar animate-enter">
+            <div className="flex flex-col h-full">
                 <div className="mb-6 flex justify-between items-end">
                     <div>
                         <h2 className="text-3xl font-bold text-slate-800 dark:text-white mb-2">{t.title}</h2>
@@ -62,7 +65,7 @@ const CodeSandbox: React.FC<SandboxProps> = ({ language }) => {
                         <select 
                             value={lang} 
                             onChange={(e) => setLang(e.target.value)}
-                            className="appearance-none bg-slate-100 dark:bg-white/10 border border-slate-200 dark:border-white/10 rounded-2xl px-5 py-2 pr-8 text-sm text-slate-800 dark:text-white focus:ring-2 focus:ring-[#007AFF] outline-none cursor-pointer font-medium"
+                            className="appearance-none glass-panel rounded-2xl px-5 py-2 pr-8 text-sm text-slate-800 dark:text-white focus:ring-2 focus:ring-[#007AFF] outline-none cursor-pointer font-medium shadow-tier-1"
                         >
                             <option value="Python">Python</option>
                             <option value="Pseudocode">Pseudocode</option>
@@ -76,50 +79,60 @@ const CodeSandbox: React.FC<SandboxProps> = ({ language }) => {
                 </div>
 
                 <div className="flex-1 flex flex-col md:flex-row gap-6 min-h-0 pb-6">
-                    {/* Editor */}
-                    <div className="flex-1 flex flex-col bg-slate-50 dark:bg-[#151516] rounded-[2rem] border border-slate-200 dark:border-white/10 overflow-hidden shadow-sm">
-                        <div className="bg-white/50 dark:bg-white/5 px-6 py-3 border-b border-slate-200 dark:border-white/10 flex justify-between items-center backdrop-blur-sm">
+                    {/* Editor Column */}
+                    <div className="flex-1 flex flex-col gap-3 min-h-0">
+                        {/* Detached Header */}
+                        <div className="glass-panel px-6 py-2.5 rounded-[2rem] flex justify-between items-center shadow-tier-1 flex-shrink-0">
                             <span className="text-xs font-mono text-slate-500 dark:text-gray-400 uppercase tracking-widest">{t.editor}</span>
                             <button 
                                 onClick={() => setCode('')}
-                                className="text-xs text-red-400 hover:text-red-500 font-medium px-2 py-1 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                                className="text-xs text-red-400 hover:text-red-500 font-medium px-2 py-1 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors interactive"
                             >
                                 {t.clear}
                             </button>
                         </div>
-                        <textarea 
-                            value={code}
-                            onChange={(e) => setCode(e.target.value)}
-                            className="flex-1 bg-transparent border-none p-6 font-mono text-sm text-slate-800 dark:text-gray-200 resize-none focus:ring-0 leading-relaxed"
-                            placeholder={t.placeholder(lang)}
-                            spellCheck={false}
-                        />
+                        
+                        {/* Detached Body */}
+                        <div className="flex-1 flex flex-col glass-panel rounded-[2rem] overflow-hidden shadow-tier-2 bg-slate-50/50 dark:bg-[#151516]/50">
+                            <textarea 
+                                value={code}
+                                onChange={(e) => setCode(e.target.value)}
+                                className="flex-1 bg-transparent border-none p-6 font-mono text-sm text-slate-800 dark:text-gray-200 resize-none focus:ring-0 leading-relaxed"
+                                placeholder={t.placeholder(lang)}
+                                spellCheck={false}
+                            />
+                        </div>
                     </div>
 
-                    {/* Output Panel */}
-                    <div className="flex-1 flex flex-col bg-white dark:bg-[#2C2C2E] rounded-[2rem] border border-slate-200 dark:border-white/10 overflow-hidden shadow-sm">
-                         <div className="bg-slate-50/50 dark:bg-white/5 px-6 py-3 border-b border-slate-200 dark:border-white/10 flex justify-between items-center backdrop-blur-sm">
+                    {/* Output Column */}
+                    <div className="flex-1 flex flex-col gap-3 min-h-0">
+                        {/* Detached Header */}
+                        <div className="glass-panel px-6 py-2.5 rounded-[2rem] flex justify-between items-center shadow-tier-1 flex-shrink-0">
                             <span className="text-xs font-mono text-slate-500 dark:text-gray-400 uppercase tracking-widest">{t.output}</span>
                             <button 
                                 onClick={handleRun}
                                 disabled={isRunnning || !code.trim()}
-                                className="bg-[#34C759] hover:bg-[#2da84a] text-white px-4 py-1.5 rounded-full text-xs font-bold transition-all disabled:opacity-50 shadow-md shadow-green-500/20 active:scale-95"
+                                className="bg-[#34C759] hover:bg-[#2da84a] text-white px-4 py-1.5 rounded-full text-xs font-bold interactive disabled:opacity-50 shadow-tier-1"
                             >
                                 {isRunnning ? t.running : t.run}
                             </button>
                         </div>
-                        <div className="flex-1 p-6 overflow-y-auto custom-scrollbar bg-slate-50/30 dark:bg-black/20">
-                            {output ? (
-                                <div className="prose prose-sm prose-slate dark:prose-invert max-w-none">
-                                    <pre className="bg-transparent p-0 m-0 whitespace-pre-wrap font-mono text-xs md:text-sm text-slate-700 dark:text-gray-300">
-                                        {output}
-                                    </pre>
-                                </div>
-                            ) : (
-                                <div className="h-full flex items-center justify-center text-slate-400 dark:text-gray-600 text-sm italic">
-                                    {t.empty}
-                                </div>
-                            )}
+
+                        {/* Detached Body */}
+                        <div className="flex-1 flex flex-col glass-panel rounded-[2rem] overflow-hidden shadow-tier-2 relative">
+                            <div className="flex-1 p-6 overflow-y-auto custom-scrollbar bg-transparent">
+                                {output ? (
+                                    <div className="prose prose-sm prose-slate dark:prose-invert max-w-none">
+                                        <pre className="bg-transparent p-0 m-0 whitespace-pre-wrap font-mono text-xs md:text-sm text-slate-700 dark:text-gray-300">
+                                            {output}
+                                        </pre>
+                                    </div>
+                                ) : (
+                                    <div className="h-full flex items-center justify-center text-slate-400 dark:text-gray-600 text-sm italic">
+                                        {t.empty}
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
