@@ -10,7 +10,25 @@ interface LiveTutorProps {
     onAwardXP: AwardXPCallback;
 }
 
+const translations = {
+    en: {
+        title: 'Live Tutor',
+        desc: 'Have a real-time conversation with Gemini 2.5.',
+        speaking: 'AI Speaking...',
+        listening: 'Listening...',
+        tapToConnect: 'Tap to Connect'
+    },
+    zh: {
+        title: '语音导师',
+        desc: '与 Gemini 进行实时语音对话，像真人一样学习。',
+        speaking: 'AI 正在说话...',
+        listening: '正在聆听...',
+        tapToConnect: '点击连接'
+    }
+};
+
 const LiveTutor: React.FC<LiveTutorProps> = ({ language, onAwardXP }) => {
+    const t = translations[language];
     const [connected, setConnected] = useState(false);
     const [speaking, setSpeaking] = useState(false);
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -162,12 +180,10 @@ const LiveTutor: React.FC<LiveTutorProps> = ({ language, onAwardXP }) => {
             <div className="z-10 text-center flex flex-col items-center">
                 <div className="mb-12">
                     <h2 className="text-4xl font-bold text-slate-800 dark:text-white mb-4">
-                        {language === 'zh' ? '语音导师' : 'Live Tutor'}
+                        {t.title}
                     </h2>
                     <p className="text-xl text-slate-500 dark:text-gray-400">
-                        {language === 'zh' 
-                            ? '与 Gemini 进行实时语音对话，像真人一样学习。' 
-                            : 'Have a real-time conversation with Gemini 2.5.'}
+                        {t.desc}
                     </p>
                 </div>
 
@@ -203,8 +219,8 @@ const LiveTutor: React.FC<LiveTutorProps> = ({ language, onAwardXP }) => {
                 
                 <p className="mt-6 text-sm font-medium text-slate-500 dark:text-gray-500 uppercase tracking-widest">
                     {connected 
-                        ? (speaking ? 'AI Speaking...' : 'Listening...') 
-                        : 'Tap to Connect'}
+                        ? (speaking ? t.speaking : t.listening) 
+                        : t.tapToConnect}
                 </p>
             </div>
         </div>

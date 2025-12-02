@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import ChatArea from './components/ChatArea';
@@ -7,13 +8,14 @@ import CodeSandbox from './components/CodeSandbox';
 import MistakesMode from './components/MistakesMode';
 import ImageStudio from './components/ImageStudio';
 import LiveTutor from './components/LiveTutor';
+import Dashboard from './components/Dashboard';
 import { AppMode, UserStats, Theme, Language } from './types';
 
 // XP Notification Component (Toast)
 const XPToast: React.FC<{ amount: number; reason: string; visible: boolean }> = ({ amount, reason, visible }) => {
     if (!visible) return null;
     return (
-        <div className="absolute top-10 left-1/2 transform -translate-x-1/2 z-50 animate-fade-in-up pointer-events-none">
+        <div className="absolute top-10 left-1/2 transform -translate-x-1/2 z-50 animate-fade-in pointer-events-none">
             <div className="bg-orange-500 text-white px-6 py-3 rounded-full shadow-lg shadow-orange-500/40 flex items-center space-x-2 font-bold text-lg">
                 <span>+{amount} XP</span>
                 <span className="text-sm font-normal opacity-90 border-l border-white/30 pl-2 ml-2">{reason}</span>
@@ -23,14 +25,16 @@ const XPToast: React.FC<{ amount: number; reason: string; visible: boolean }> = 
 };
 
 const App: React.FC = () => {
-  const [currentMode, setCurrentMode] = useState<AppMode>(AppMode.Chat);
+  // Default mode changed to Dashboard for Hub-based architecture
+  const [currentMode, setCurrentMode] = useState<AppMode>(AppMode.Dashboard);
   const [stats, setStats] = useState<UserStats>({
     points: 0,
     dailyXP: 0,
     streak: 0,
     level: 1,
     lastLogin: new Date().toISOString(),
-    quizzesTaken: 0
+    quizzesTaken: 0,
+    achievements: []
   });
   const [theme, setTheme] = useState<Theme>('dark');
   const [language, setLanguage] = useState<Language>('en');
@@ -65,7 +69,8 @@ const App: React.FC = () => {
         dailyXP: newDailyXP,
         streak: newStreak,
         lastLogin: now.toISOString(),
-        level: Math.floor((parsed.points || 0) / 1000) + 1
+        level: Math.floor((parsed.points || 0) / 1000) + 1,
+        achievements: parsed.achievements || []
       });
     } else {
       localStorage.setItem('9618_tutor_stats', JSON.stringify(stats));
@@ -94,6 +99,7 @@ const App: React.FC = () => {
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
         if (e.altKey) {
+            if (e.key === '0') setCurrentMode(AppMode.Dashboard);
             if (e.key === '1') setCurrentMode(AppMode.Chat);
             if (e.key === '2') setCurrentMode(AppMode.LiveTutor);
             if (e.key === '3') setCurrentMode(AppMode.Quiz);
@@ -166,13 +172,16 @@ const App: React.FC = () => {
         
         {/* Main Content Area */}
         <main className="flex-1 h-full relative rounded-[2.5rem] bg-white dark:bg-[#1C1C1E] shadow-apple dark:shadow-apple-dark border border-white/50 dark:border-white/5 ring-1 ring-black/5 dark:ring-white/5 overflow-hidden transition-colors duration-300">
-            {currentMode === AppMode.Chat && <ChatArea language={language} onAwardXP={handleAwardXP} />}
-            {currentMode === AppMode.Quiz && <QuizMode onAwardXP={handleAwardXP} language={language} />}
-            {currentMode === AppMode.Grader && <GraderMode language={language} onAwardXP={handleAwardXP} />}
-            {currentMode === AppMode.Sandbox && <CodeSandbox language={language} onAwardXP={handleAwardXP} />}
-            {currentMode === AppMode.Mistakes && <MistakesMode language={language} onAwardXP={handleAwardXP} />}
-            {currentMode === AppMode.ImageStudio && <ImageStudio language={language} onAwardXP={handleAwardXP} />}
-            {currentMode === AppMode.LiveTutor && <LiveTutor language={language} onAwardXP={handleAwardXP} />}
+            <div key={currentMode} className="w-full h-full animate-enter">
+              {currentMode === AppMode.Dashboard && <Dashboard stats={stats} language={language} setMode={setCurrentMode} />}
+              {currentMode === AppMode.Chat && <ChatArea language={language} onAwardXP={handleAwardXP} />}
+              {currentMode === AppMode.Quiz && <QuizMode onAwardXP={handleAwardXP} language={language} />}
+              {currentMode === AppMode.Grader && <GraderMode language={language} onAwardXP={handleAwardXP} />}
+              {currentMode === AppMode.Sandbox && <CodeSandbox language={language} onAwardXP={handleAwardXP} />}
+              {currentMode === AppMode.Mistakes && <MistakesMode language={language} onAwardXP={handleAwardXP} />}
+              {currentMode === AppMode.ImageStudio && <ImageStudio language={language} onAwardXP={handleAwardXP} />}
+              {currentMode === AppMode.LiveTutor && <LiveTutor language={language} onAwardXP={handleAwardXP} />}
+            </div>
         </main>
       </div>
     </div>

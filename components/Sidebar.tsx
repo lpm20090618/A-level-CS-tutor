@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { AppMode, UserStats, Theme, Language } from '../types';
-import { ChatIcon, QuizIcon, GradeIcon, CodeIcon, FlameIcon, SunIcon, MoonIcon, GlobeIcon, BookIcon, ImageIcon, MicIcon } from './Icons';
+import { ChatIcon, QuizIcon, GradeIcon, CodeIcon, FlameIcon, SunIcon, MoonIcon, GlobeIcon, BookIcon, ImageIcon, MicIcon, HomeIcon } from './Icons';
 
 interface SidebarProps {
   currentMode: AppMode;
@@ -15,6 +14,7 @@ interface SidebarProps {
 
 const translations = {
     en: {
+        dashboard: 'Dashboard',
         chat: 'Tutor Chat',
         quiz: 'Quiz',
         grader: 'Grader',
@@ -27,6 +27,7 @@ const translations = {
         level: 'Lvl'
     },
     zh: {
+        dashboard: '仪表盘',
         chat: 'AI 导师',
         quiz: '测验',
         grader: '批改',
@@ -43,8 +44,9 @@ const translations = {
 const Sidebar: React.FC<SidebarProps> = ({ currentMode, setMode, stats, theme, toggleTheme, language, toggleLanguage }) => {
   const t = translations[language];
 
-  // Reordered Navigation as requested
+  // Reordered Navigation: Dashboard first (Hub model)
   const navItems = [
+    { mode: AppMode.Dashboard, icon: HomeIcon, label: t.dashboard },
     { mode: AppMode.Chat, icon: ChatIcon, label: t.chat },
     { mode: AppMode.LiveTutor, icon: MicIcon, label: t.live },
     { mode: AppMode.Quiz, icon: QuizIcon, label: t.quiz },
@@ -59,7 +61,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentMode, setMode, stats, theme, t
       
       {/* App Header */}
       <div className="p-6 pb-4 flex items-center justify-center md:justify-start space-x-3 mt-2 flex-shrink-0">
-        <div className="w-10 h-10 bg-gradient-to-br from-[#007AFF] to-[#5856D6] rounded-2xl shadow-lg flex items-center justify-center text-white font-bold text-xs tracking-tighter shadow-tier-1">9618</div>
+        <div className="w-10 h-10 bg-gradient-to-br from-[#007AFF] to-[#5856D6] rounded-2xl shadow-lg flex items-center justify-center text-white font-bold text-xs tracking-tighter shadow-tier-1 interactive">9618</div>
         <span className="hidden md:block font-bold text-xl tracking-tight text-black dark:text-white leading-none">CS Tutor</span>
       </div>
 
@@ -70,9 +72,9 @@ const Sidebar: React.FC<SidebarProps> = ({ currentMode, setMode, stats, theme, t
           <button
             key={item.mode}
             onClick={() => setMode(item.mode)}
-            className={`w-full flex items-center space-x-3 px-3 py-3 rounded-2xl interactive group ${
+            className={`w-full flex items-center space-x-3 px-3 py-3 rounded-2xl interactive group transition-all duration-300 ${
               currentMode === item.mode
-                ? 'bg-[#007AFF] text-white shadow-tier-1'
+                ? 'bg-[#007AFF] text-white shadow-tier-1 translate-x-1'
                 : 'text-gray-500 dark:text-gray-400 hover:bg-black/5 dark:hover:bg-white/10 hover:text-black dark:hover:text-white'
             }`}
           >
@@ -85,7 +87,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentMode, setMode, stats, theme, t
       {/* Bottom Section: Stats & Controls */}
       <div className="p-3 mt-auto flex-shrink-0 flex flex-col gap-3 pb-6">
         {/* Stats Card */}
-        <div className="glass-panel p-4 flex flex-col space-y-3 rounded-[2rem] border-none bg-white/40 dark:bg-white/5">
+        <div className="glass-panel p-4 flex flex-col space-y-3 rounded-[2rem] border-none bg-white/40 dark:bg-white/5 interactive">
             <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                     <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-orange-400 to-red-500 flex items-center justify-center text-white shadow-md">

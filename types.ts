@@ -1,4 +1,5 @@
 export enum AppMode {
+  Dashboard = 'DASHBOARD',
   Chat = 'CHAT',
   LiveTutor = 'LIVE_TUTOR',
   ImageStudio = 'IMAGE_STUDIO',
@@ -52,6 +53,14 @@ export interface QuizQuestion {
   explanation: string;
 }
 
+export interface Achievement {
+  id: string;
+  title: string;
+  desc: string;
+  icon: string; // Emoji or icon name
+  unlockedAt?: string;
+}
+
 export interface UserStats {
   points: number;       // Total Lifetime XP
   dailyXP: number;      // XP gained today (for daily goals)
@@ -59,6 +68,7 @@ export interface UserStats {
   level: number;        // Calculated from points (e.g., points / 1000)
   lastLogin: string;    // ISO date
   quizzesTaken: number;
+  achievements: Achievement[];
 }
 
 export interface MistakeEntry {
